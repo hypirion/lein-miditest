@@ -5,3 +5,4 @@
   []
   (println "Oh, I'm hooked! I'm hooked! Wee :D"))
 
+(alter-var-root #'hooks memoize)
