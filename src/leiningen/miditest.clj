@@ -31,6 +31,7 @@
         (Thread/sleep 1000)))))
 
 (defn miditest
-  "I don't do a lot."
+  "I play the french horn."
   [project & args]
   (play-instrument "French Horn"))
+
