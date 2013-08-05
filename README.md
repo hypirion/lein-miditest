@@ -1,25 +1,35 @@
 # lein-miditest
 
-A Leiningen plugin to do many wonderful things.
+A Leiningen plugin to play a midi tone/sequence of sounds whenever tests or
+retests have finished.
 
 ## Usage
 
-FIXME: Use this for user-level plugins:
+Since this little plugin only adds midi tones to the `test` and `retest` tasks,
+there's not much to do really. As I assume that you would like to add tones to
+all tests used in Leiningen, putting it in your `:user` profile within
+`~/.lein/profiles.clj` would do what you want. Put `[lein-miditest "0.1.0"]` in
+the `:plugins` vector inside your user profile. If you've never modified the
+`~/.lein/profiles.clj` file before, create it and put the following clojure
+snippet into it:
 
-Put `[lein-miditest "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your
-`:user` profile, or if you are on Leiningen 1.x do `lein plugin install
-lein-miditest 0.1.0-SNAPSHOT`.
+```clj
+{:user
+ {:plugins [[lein-miditest "0.1.0"]]}}
+```
 
-FIXME: Use this for project-level plugins:
+If you want to put this into a `project.clj`, every single contributor will have
+midi sounds playing whenever they test code with Leiningen. If you want a midi
+choir, so be it, but take it into consideration if you want contributors.
 
-Put `[lein-miditest "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
-
-FIXME: and add an example usage that actually makes sense:
-
-    $ lein miditest
+That should be everything. `lein-miditest` doesn't come with any commands, just
+use `lein test` and `lein retest` as you'd usually do.
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 by Jean Niklas L'orange.
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the [Eclipse Public License, version 1.0][license]. You can
+find a copy in the root of this repository with the name `LICENSE`.
+
+[license]: http://www.eclipse.org/legal/epl-v10.html "Eclipse Public License, version 1.0"
