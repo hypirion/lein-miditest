@@ -5,14 +5,10 @@
 (def default-velocity 128)
 (def default-duration 1000)
 
-(defn play-note [channel note-map]
-  (let [{:keys [note velocity duration]
-         :or {note default-note
-              velocity default-velocity
-              duration default-duration}} note-map]
-    (. channel noteOn note velocity)
-    (Thread/sleep duration)
-    (. channel noteOff note)))
+(defn play-note [channel duration]
+  (.noteOn channel default-note default-velocity)
+  (Thread/sleep duration)
+  (.noteOff channel default-note))
 
 (defn find-instrument
   [synth instrument-name]
@@ -27,7 +23,7 @@
       (when instrument
         (.loadInstrument synth instrument)
         (.programChange channel (.. instrument getPatch getProgram))
-        (play-note channel {:duration 1000})
+        (play-note channel 1000)
         (Thread/sleep 1000)))))
 
 (defn miditest
