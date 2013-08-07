@@ -4,19 +4,27 @@
 
 (def ^:private ^:dynamic *recursive-test* false)
 
-(defn error-sound []
-  (midi/play-instrument "French Horn"))
+(defn ok-sound []
+  (midi/play-instrument "Timpani" 80))
 
-(defn play-after [song]
+(defn failure-sound []
+  (midi/play-instrument "French Horn" 60))
+
+(defn play-after [ok failure]
   (fn [f]
     (fn [& args]
-      (binding [*recursive-test* true]
-        (apply f args))
-      (when-not *recursive-test*
-        (song)))))
+      (try
+        (binding [*recursive-test* true]
+          (apply f args)
+          (ok))
+        (catch Exception e
+          (println "hullo")
+          (when-not *recursive-test*
+            (failure))
+          (throw e))))))
 
 (defn hooks
   []
-  (alter-var-root #'leiningen.test/test (play-after error-sound)))
+  (alter-var-root #'leiningen.test/test (play-after ok-sound failure-sound)))
 
 (alter-var-root #'hooks memoize)
