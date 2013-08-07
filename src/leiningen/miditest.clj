@@ -5,7 +5,7 @@
 (def default-note 60)
 (def default-velocity 128)
 (def default-duration 1000)
-(def meta-end-of-track 47)
+(def ^:const meta-end-of-track 47)
 
 (defn midi-event
   "Returns a new midi event set up to last n ticks (by default, 1)."
