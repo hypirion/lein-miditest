@@ -14,12 +14,15 @@
 (defn play-after [ok failure]
   (fn [f]
     (fn [& args]
-      (let [exit-process? main/*exit-process?*]
+      (let [exit-process? main/*exit-process?*
+            this-recursive? *recursive-test*]
         (try
           (binding [*recursive-test* true
                     main/*exit-process?* false]
-            (apply f args)
-            (ok))
+            (let [call-result (apply f args)]
+              (when-not this-recursive?
+                (ok))
+              call-result))
           (catch clojure.lang.ExceptionInfo e
             (if exit-process?
               (let [exit-code (get (ex-data e) :exit-code 1)]
