@@ -7,12 +7,8 @@
 (def default-duration 1000)
 (def meta-end-of-track 47)
 
-(defn play-note [channel duration]
-  (.noteOn channel default-note default-velocity)
-  (Thread/sleep duration)
-  (.noteOff channel default-note))
-
 (defn midi-event
+  "Returns a new midi event set up to last n ticks (by default, 1)."
   ([command channel data1 data2]
      (midi-event command channel data1 data2 1))
   ([command channel data1 data2 ticks]
@@ -22,11 +18,14 @@
       ticks)))
 
 (defn play-note-events
+  "Returns all midi events needed to play a 8 tick long note."
   [note]
   [(midi-event ShortMessage/NOTE_ON 1 note 127)
    (midi-event ShortMessage/NOTE_OFF 1 note 127 8)])
 
 (defn find-instrument
+  "Returns the instrument with the instrument-name given, or nil if none exits.
+  If no syntesizer is applied, the system's default synthesizer will be used."
   ([instrument-name]
      (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
        (find-instrument synth instrument-name)))
@@ -35,12 +34,15 @@
                      (.getAvailableInstruments synth)))))
 
 (defn change-instrument-events
+  "Returns all the midi events needed to shift from one instrument to another."
   [instrument-name]
   (let [instrument (find-instrument instrument-name)
         instrument-int (.. instrument getPatch getProgram)]
     [(midi-event ShortMessage/PROGRAM_CHANGE 1 instrument-int 0)]))
 
 (defn play-instrument
+  "Plays a midi instrument with the given note from the system's default
+  sequencer. Will block until the note has been played."
   [instrument-name note]
   (let [instr-notes (change-instrument-events instrument-name)
         play-notes (play-note-events note)
@@ -63,11 +65,13 @@
         (.wait lock)))
     (Thread/sleep 500))) ; TODO: Get away from this somehow.
 
-(defn all-instruments []
+(defn all-instruments
+  "Returns the name of all the different available instruments."
+  []
   (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
     (mapv #(.getName %) (.getAvailableInstruments synth))))
 
 (defn miditest
   "I play the french horn."
-  [project & args]
+  [& _]
   (play-instrument "French Horn" 60))
