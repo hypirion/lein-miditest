@@ -1,7 +1,6 @@
 (ns leiningen.miditest
   (:import (javax.sound.midi MidiSystem Sequencer MidiEvent ShortMessage
-                             Sequence Track MetaEventListener
-                             MetaMessage)))
+                             Sequence Track MetaEventListener MetaMessage)))
 
 (def default-note 60)
 (def default-velocity 128)
@@ -32,8 +31,8 @@
      (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
        (find-instrument synth instrument-name)))
   ([synth instrument-name]
-     (first (filter #(= instrument-name (.getName %))
-                    (.getAvailableInstruments synth)))))
+     (first (filterv #(= instrument-name (.getName %))
+                     (.getAvailableInstruments synth)))))
 
 (defn change-instrument-events
   [instrument-name]
@@ -42,9 +41,9 @@
     [(midi-event ShortMessage/PROGRAM_CHANGE 1 instrument-int 0)]))
 
 (defn play-instrument
-  [instrument-name]
+  [instrument-name note]
   (let [instr-notes (change-instrument-events instrument-name)
-        play-notes (play-note-events 60)
+        play-notes (play-note-events note)
         player (doto (MidiSystem/getSequencer) .open)
         sequence (Sequence. Sequence/PPQ 4)
         track (. sequence createTrack)
@@ -62,10 +61,13 @@
     (locking lock
       (while (.isRunning player)
         (.wait lock)))
-    (Thread/sleep 1000))) ; TODO: Get away from this somehow.
+    (Thread/sleep 500))) ; TODO: Get away from this somehow.
+
+(defn all-instruments []
+  (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
+    (mapv #(.getName %) (.getAvailableInstruments synth))))
 
 (defn miditest
   "I play the french horn."
   [project & args]
-  (play-instrument "French Horn"))
-
+  (play-instrument "French Horn" 60))
