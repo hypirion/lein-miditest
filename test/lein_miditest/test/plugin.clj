@@ -1,5 +1,6 @@
 (ns lein-miditest.test.plugin
-  (:require [lein-miditest.plugin :refer :all]
+  (:require [leiningen.core.main :as main]
+            [lein-miditest.plugin :refer :all]
             [clojure.test :refer :all]))
 
 (defn- default-test-setup []
@@ -33,3 +34,17 @@
     (testing "that the function only calls the ok-fn once"
       (is (= (fib 10) (altered-fib 10)))
       (is (= @result-atom 1)))))
+
+(deftest call-after-failure-test
+  (let [[result-atom ok-fn failure-fn] (default-test-setup)
+        error-fn ((call-after ok-fn failure-fn)
+                  (fn [] (throw (ex-info "ba-dumm" {:exit-code :arbitrary}))))]
+    (testing "that ExceptionInfo is thrown and no failure fn is called"
+      (binding [main/*exit-process?* false]
+        (is (thrown? clojure.lang.ExceptionInfo (error-fn)))
+        (reset! result-atom 0)
+        (try
+          (error-fn)
+          (catch clojure.lang.ExceptionInfo e
+            (is (zero? @result-atom))
+            (is (= :arbitrary (get (ex-data e) :exit-code)))))))))
