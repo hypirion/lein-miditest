@@ -3,10 +3,6 @@
             [leiningen.test :as test]
             [leiningen.core.main :as main]))
 
-(def ^:private ^:dynamic *recursive-test*
-  "Private dynamic var to avoid playing sounds in recursive calls."
-  false)
-
 (defn ok-beep
   "The default beep for success: A timpani."
   []
@@ -25,23 +21,26 @@
   the :exit-code from the ExceptionInfo map or 1 if it does not exist."
   [ok failure]
   (fn [f]
-    (fn [& args]
-      (let [exit-process? main/*exit-process?*
-            this-recursive? *recursive-test*]
-        (try
-          (binding [*recursive-test* true
-                    main/*exit-process?* false]
-            (let [call-result (apply f args)]
-              (when-not this-recursive?
-                (ok))
-              call-result))
-          (catch clojure.lang.ExceptionInfo e
-            (if exit-process?
-              (let [exit-code (get (ex-data e) :exit-code 1)]
-                (when-not *recursive-test*
-                  (failure))
-                (main/exit exit-code))
-              (throw e))))))))
+    (let [recursive-atom (atom 0)]
+        (fn [& args]
+          (let [exit-process? main/*exit-process?*
+                this-recursive? (pos? @recursive-atom)]
+            (try
+              (swap! recursive-atom inc)
+              (binding [main/*exit-process?* false]
+                (let [call-result (apply f args)]
+                  (when-not this-recursive?
+                    (ok))
+                  call-result))
+              (catch clojure.lang.ExceptionInfo e
+                (if exit-process?
+                  (let [exit-code (get (ex-data e) :exit-code 1)]
+                    (when-not *recursive-test*
+                      (failure))
+                    (main/exit exit-code))
+                  (throw e)))
+              (finally
+                (swap! recursive-atom dec))))))))
 
 (defn hooks
   "Hooks for Leiningen. Alters leiningen.test/test to play sounds whenever a
