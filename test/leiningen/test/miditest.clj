@@ -19,3 +19,7 @@
                  (identical? (find-instrument synth (.getName instrument))
                              instrument)))))))
 
+(deftest all-instruments-check
+  (testing "that all instruments listed returns a legal instrument"
+    (is (every? #(instance? Instrument (find-instrument %))
+                (all-instruments)))))
