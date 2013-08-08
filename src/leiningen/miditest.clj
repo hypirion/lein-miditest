@@ -24,7 +24,7 @@
    (midi-event ShortMessage/NOTE_OFF 1 note 127 8)])
 
 (defn find-instrument
-  "Returns the instrument with the instrument-name given, or nil if none exits.
+  "Returns the instrument with the instrument-name given, or nil if none exists.
   If no syntesizer is applied, the system's default synthesizer will be used."
   ([instrument-name]
      (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
