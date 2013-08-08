@@ -35,7 +35,7 @@
               (catch clojure.lang.ExceptionInfo e
                 (if exit-process?
                   (let [exit-code (get (ex-data e) :exit-code 1)]
-                    (when-not *recursive-test*
+                    (when-not this-recursive?
                       (failure))
                     (main/exit exit-code))
                   (throw e)))
