@@ -1,4 +1,5 @@
 # lein-miditest
+[![Build Status](https://secure.travis-ci.org/hyPiRion/lein-miditest.png?branch=master "Build Status")](http://travis-ci.org/hyPiRion/lein-miditest)
 
 A Leiningen plugin to play a midi tone when tests and retests have finished.
 
