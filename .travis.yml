@@ -1,5 +1,6 @@
 language: clojure
 lein: lein2
+script: lein test lein-miditest.test.plugin
 branches:
   only:
     - master
