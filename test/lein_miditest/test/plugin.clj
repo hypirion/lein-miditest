@@ -36,10 +36,10 @@
       (is (= @result-atom 1)))))
 
 (deftest call-after-failure-test
-  (let [[result-atom ok-fn failure-fn] (default-test-setup)
-        error-fn ((call-after ok-fn failure-fn)
-                  (fn [] (throw (ex-info "ba-dumm" {:exit-code :arbitrary}))))]
-    (testing "that ExceptionInfo is thrown and no failure fn is called"
+  (testing "that ExceptionInfo is thrown and no failure fn is called"
+    (let [[result-atom ok-fn failure-fn] (default-test-setup)
+          error-fn ((call-after ok-fn failure-fn)
+                    (fn [] (throw (ex-info "ba-dumm" {:exit-code :arbitrary}))))]
       (binding [main/*exit-process?* false]
         (is (thrown? clojure.lang.ExceptionInfo (error-fn)))
         (reset! result-atom 0)
@@ -47,4 +47,17 @@
           (error-fn)
           (catch clojure.lang.ExceptionInfo e
             (is (zero? @result-atom))
-            (is (= :arbitrary (get (ex-data e) :exit-code)))))))))
+            (is (= :arbitrary (get (ex-data e) :exit-code))))))))
+
+  (testing "that main/exit is called if main/*exit-process?* is true"
+    (let [[result-atom failure-fn ok-fn] (default-test-setup)
+          ;; ^^ Swapping failure and ok here. Failure adds one, ok resets to -1.
+          fail-fn ((call-after ok-fn failure-fn)
+                   (fn ([] (throw (ex-info "boom!" {:no :exit-code})))
+                     ([n] (throw (ex-info "boom!" {:exit-code n})))))]
+      (with-redefs [main/exit (fn [exit-code] {:exit-code exit-code})]
+        (binding [main/*exit-process?* true]
+          (testing "that the correct exit-code is thrown"
+            (is (= (fail-fn) {:exit-code 1}))
+            (is (= (fail-fn 1) {:exit-code 1}))
+            (is (= (fail-fn 5) {:exit-code 5}))))))))
