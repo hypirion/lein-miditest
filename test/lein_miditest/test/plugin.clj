@@ -15,6 +15,17 @@
       (+ (fib (- n 1))
          (fib (- n 2)))))
 
+(defn- recursive-failure
+  [n]
+  (if (neg? n)
+    (throw (ex-info "Something we should never see." {:exit-code 1}))
+    (do
+      (try (recursive-failure (- n 1))
+           (catch clojure.lang.ExceptionInfo e))
+      (try (recursive-failure (- n 2))
+           (catch clojure.lang.ExceptionInfo e))
+      n)))
+
 (deftest simple-call-after-tests
   (let [[result-atom ok-fn failure-fn] (default-test-setup)
         default-fn (fn [] :success)
@@ -30,10 +41,18 @@
 
 (deftest recursive-call-after-tests
   (let [[result-atom ok-fn failure-fn] (default-test-setup)
-        altered-fib ((call-after ok-fn failure-fn) fib)]
+        altered-fib ((call-after ok-fn failure-fn) fib)
+        altered-recursive-failure ((call-after (fn []) failure-fn)
+                                   recursive-failure)]
     (testing "that the function only calls the ok-fn once"
       (is (= (fib 10) (altered-fib 10)))
-      (is (= @result-atom 1)))))
+      (is (= @result-atom 1)))
+    (testing "that ExceptionInfo from recursive calls doesn't get caught"
+      (reset! result-atom 0)
+      (is (and (= (altered-recursive-failure 1) 1)
+               (zero? @result-atom)))
+      (is (and (= (altered-recursive-failure 10) 10)
+               (zero? @result-atom))))))
 
 (deftest call-after-failure-test
   (testing "that ExceptionInfo is thrown and no failure fn is called"
