@@ -19,7 +19,7 @@
   [n]
   (if (neg? n)
     (throw (ex-info "Something we should never see." {:exit-code 1}))
-    (do
+    (binding [main/*exit-process?* true]
       (try (recursive-failure (- n 1))
            (catch clojure.lang.ExceptionInfo e))
       (try (recursive-failure (- n 2))
