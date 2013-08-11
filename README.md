@@ -22,7 +22,8 @@ put the following clojure snippet into it:
 If you want to put this into a `project.clj`, every single contributor will have
 midi sounds playing whenever they test code with Leiningen. If you want a midi
 choir, so be it, but take it into consideration if you want contributors.
-`lein-miditest` may crash servers and CI services, so be a bit careful.
+`lein-miditest` may also crash servers and CI services (because of a lack of
+sound systems), so be a bit careful.
 
 That should be everything. `lein-miditest` comes with the task `miditest`, which
 would check if the midi system works correctly on your machine: It should play
