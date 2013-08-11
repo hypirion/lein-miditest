@@ -1,4 +1,5 @@
 (ns leiningen.miditest
+  (:require [leiningen.core.main :as main])
   (:import (javax.sound.midi MidiSystem Sequencer MidiEvent ShortMessage
                              Sequence Track MetaEventListener MetaMessage)))
 
@@ -42,13 +43,19 @@
 (defn change-instrument-events
   "Returns all the midi events needed to shift from one instrument to another."
   [instrument-name]
-  (let [instrument (find-instrument instrument-name)
+  (let [intended-instrument (find-instrument instrument-name)
+        instrument (or intended-instrument (nth-instrument 0))
         instrument-int (.. instrument getPatch getProgram)]
+    (when-not intended-instrument
+      (main/info
+       (format "Unable to find the instrument \"%s\", using default instrument."
+               instrument-name)))
     [(midi-event ShortMessage/PROGRAM_CHANGE 1 instrument-int 0)]))
 
 (defn play-instrument
   "Plays a midi instrument with the given note from the system's default
-  sequencer. Will block until the note has been played."
+  sequencer. Will block until the note has been played. If the instrument isn't
+  available, will print an error message and use the default note instead."
   [instrument-name note]
   (let [instr-notes (change-instrument-events instrument-name)
         play-notes (play-note-events note)
