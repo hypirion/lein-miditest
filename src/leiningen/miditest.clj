@@ -1,12 +1,15 @@
 (ns leiningen.miditest
   (:require [leiningen.core.main :as main])
   (:import (javax.sound.midi MidiSystem Sequencer MidiEvent ShortMessage
-                             Sequence Track MetaEventListener MetaMessage)))
+                             Sequence Track MetaEventListener MetaMessage
+                             MidiChannel)))
 
 (def default-note 60)
 (def default-velocity 128)
 (def default-duration 1000)
 (def ^:const meta-end-of-track 47)
+(def ^:const channel-change-volume 7)
+(def ^:const max-volume 127)
 
 (defn midi-event
   "Returns a new midi event set up to last n ticks (by default, 1)."
@@ -57,26 +60,31 @@
   sequencer. Will block until the note has been played. If the instrument isn't
   available, will print an error message and use the default note instead."
   [instrument-name note]
-  (let [instr-notes (change-instrument-events instrument-name)
-        play-notes (play-note-events note)
-        player (doto (MidiSystem/getSequencer) .open)
-        sequence (Sequence. Sequence/PPQ 4)
-        track (. sequence createTrack)
-        lock (Object.)
-        event-listener (reify MetaEventListener
+  (with-open [player (doto (MidiSystem/getSequencer false) .open)
+              synth (doto (MidiSystem/getSynthesizer) .open)
+              receiver (.getReceiver synth)]
+    (.. player getTransmitter (setReceiver receiver))
+    (let [instr-notes (change-instrument-events instrument-name)
+          play-notes (play-note-events note)
+          sequence (Sequence. Sequence/PPQ 4)
+          track (. sequence createTrack)
+          lock (Object.)
+          event-listener (reify MetaEventListener
                            (meta [this e]
                              (if (== (.getType e) meta-end-of-track)
                                (locking lock
                                  (.notify lock)))))]
-    (doseq [event (concat instr-notes play-notes)]
-      (.add track event))
-    (.setSequence player sequence)
-    (.addMetaEventListener player event-listener)
-    (.start player)
-    (locking lock
-      (while (.isRunning player)
-        (.wait lock)))
-    (Thread/sleep 500))) ; TODO: Get away from this somehow.
+      (doseq [chans (.getChannels synth)]
+        (.controlChange chans channel-change-volume max-volume))
+      (doseq [event (concat instr-notes play-notes)]
+        (.add track event))
+      (.setSequence player sequence)
+      (.addMetaEventListener player event-listener)
+      (.start player)
+      (locking lock
+        (while (.isRunning player)
+          (.wait lock)))
+      (Thread/sleep 500)))) ; TODO: Get away from this somehow.
 
 (defn instrument-count
   "Returns the count of all available instruments."
