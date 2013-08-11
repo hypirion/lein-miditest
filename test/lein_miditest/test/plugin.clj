@@ -82,6 +82,6 @@
             (is (= (fail-fn 5) {:exit-code 5})))
           (testing "that the failure command is called"
             (reset! result-atom 0)
-             (is (= (do (fail-fn) @result-atom) 1))
-             (is (= (do (fail-fn) @result-atom) 2))
-             (is (= (do (fail-fn) @result-atom) 3))))))))
+            (is (= (do (fail-fn) @result-atom) 1))
+            (is (= (do (fail-fn) @result-atom) 2))
+            (is (= (do (fail-fn) @result-atom) 3))))))))

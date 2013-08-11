@@ -33,6 +33,12 @@
      (first (filterv #(= instrument-name (.getName %))
                      (.getAvailableInstruments synth)))))
 
+(defn nth-instrument
+  "Returns the nth instrument."
+  [n]
+  (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
+    (aget (.getAvailableInstruments synth) n)))
+
 (defn change-instrument-events
   "Returns all the midi events needed to shift from one instrument to another."
   [instrument-name]
@@ -64,6 +70,12 @@
       (while (.isRunning player)
         (.wait lock)))
     (Thread/sleep 500))) ; TODO: Get away from this somehow.
+
+(defn instrument-count
+  "Returns the count of all available instruments."
+  []
+  (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
+    (alength (.getAvailableInstruments synth))))
 
 (defn all-instruments
   "Returns the name of all the different available instruments."
