@@ -1,4 +1,4 @@
-(defproject lein-miditest "0.1.0-SNAPSHOT"
+(defproject lein-miditest "0.1.0"
   :description "Play midi sound when tests and retests have finished."
   :url "https://github.com/hyPiRion/lein-miditest"
   :license {:name "Eclipse Public License"
