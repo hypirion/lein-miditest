@@ -98,7 +98,7 @@
   (with-open [synth (doto (MidiSystem/getSynthesizer) .open)]
     (mapv #(.getName %) (.getAvailableInstruments synth))))
 
-(defn miditest
+(defn ^:no-project-needed miditest
   "I play the french horn."
   [& _]
   (play-instrument "French Horn" 60))
