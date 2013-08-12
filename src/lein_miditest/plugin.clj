@@ -44,11 +44,13 @@
 
 (defn hooks
   "Hooks for Leiningen. Alters leiningen.test/test to play sounds whenever a
-  test has finished."
+  test has finished. Once this one's called, there's no going back."
   []
   (alter-var-root #'test/test
                   (call-after ok-beep failure-beep)))
 
 ;; To avoid altering functions more than once, we'll just memoize to avoid
-;; potential overhead and multiple beeps (you never know).
+;; multiple beeps. Unfortunately we cannot use robert.hooke because it seems
+;; hard/impossible to track recursion with it, and for some other reason it
+;; isn't able to track exceptions and *exit-process?* correctly.
 (alter-var-root #'hooks memoize)
